@@ -8,9 +8,9 @@
 
 mLua区分byte数组和string。在mLua中，java的byte数组对lua端而言，只是一个普通的userdata。
 
-在跨语言数据交换的时候，strig是被复制的，因此当一个string从lua传递到java后再于lua中修改它，它在java端的对应版本并不会随着改变。
+在跨语言数据交换的时候，string是被复制的，因此当一个string从lua传递到java后再于lua中修改它，它在java端的对应版本并不会随着改变。
 
-将lua端的number传递给java后，会被优先解释为byte类型，否则则依照byte - short - int - long - float - double链条来尝试解释。
+将lua端的number传递给java后，会被优先解释为byte类型，否则将依照byte - short - int - long - float - double链条来尝试解释。
 
 mLua不对外暴露lua解析器实例，所有的操作都基于MLua实例完成。
 
