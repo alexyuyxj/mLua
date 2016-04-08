@@ -27,60 +27,62 @@ public class LuaObject {
 	}
 	
 	public Object call(Object[] args, int nres) throws Throwable {
-		if (type() != Lua.LUA_TFUNCTION) {
-			throw new Throwable("Invalid object. Not a function, table or userdata .");
-		}
-		
-		int top = lua.getTop();
-		lua.rawGetI(Lua.LUA_REGISTRYINDEX, ref);
-		int nargs;
-		if (args != null) {
-			nargs = args.length;
-			for (int i = 0; i < nargs; i++) {
-				pushObjectValue(args[i]);
-			}
-		} else {
-			nargs = 0;
-		}
-
-		int err = lua.pcall(nargs, nres, 0);
-		if (err != 0) {
-			String str;
-			if (lua.isString(-1)) {
-				str = lua.toString(-1);
-				lua.pop(1);
-			} else {
-				str = "";
+		synchronized (lua) {
+			if (type() != Lua.LUA_TFUNCTION) {
+				throw new Throwable("Invalid object. Not a function, table or userdata .");
 			}
 			
-			if (err == Lua.LUA_ERRRUN) {
-				throw new Throwable("Runtime error. " + str);
-			} else if (err == Lua.LUA_ERRMEM) {
-				throw new Throwable("Memory allocation error. " + str);
-			} else if (err == Lua.LUA_ERRERR) {
-				throw new Throwable("Error while running the error handler function. " + str);
+			int top = lua.getTop();
+			lua.rawGetI(Lua.LUA_REGISTRYINDEX, ref);
+			int nargs;
+			if (args != null) {
+				nargs = args.length;
+				for (int i = 0; i < nargs; i++) {
+					pushObjectValue(args[i]);
+				}
 			} else {
-				throw new Throwable("Lua Error code " + err + ". " + str);
+				nargs = 0;
 			}
-		}
 
-		if (nres == Lua.LUA_MULTRET) {
-			nres = lua.getTop() - top;
-		}
-		
-		if (lua.getTop() - top < nres) {
-			throw new Throwable("Invalid Number of Results .");
-		}
+			int err = lua.pcall(nargs, nres, 0);
+			if (err != 0) {
+				String str;
+				if (lua.isString(-1)) {
+					str = lua.toString(-1);
+					lua.pop(1);
+				} else {
+					str = "";
+				}
+				
+				if (err == Lua.LUA_ERRRUN) {
+					throw new Throwable("Runtime error. " + str);
+				} else if (err == Lua.LUA_ERRMEM) {
+					throw new Throwable("Memory allocation error. " + str);
+				} else if (err == Lua.LUA_ERRERR) {
+					throw new Throwable("Error while running the error handler function. " + str);
+				} else {
+					throw new Throwable("Lua Error code " + err + ". " + str);
+				}
+			}
 
-		Object[] res = new Object[nres];
-		for (int i = nres; i > 0; i--) {
-			res[i - 1] = lua.toJavaObject(-1);
-			lua.pop(1);
-		}
-		if (nres > 0) {
-			return res[0];
-		} else {
-			return null;
+			if (nres == Lua.LUA_MULTRET) {
+				nres = lua.getTop() - top;
+			}
+			
+			if (lua.getTop() - top < nres) {
+				throw new Throwable("Invalid Number of Results .");
+			}
+
+			Object[] res = new Object[nres];
+			for (int i = nres; i > 0; i--) {
+				res[i - 1] = lua.toJavaObject(-1);
+				lua.pop(1);
+			}
+			if (nres > 0) {
+				return res[0];
+			} else {
+				return null;
+			}
 		}
 	}
 	

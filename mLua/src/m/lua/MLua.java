@@ -17,6 +17,7 @@ public class MLua {
 	
 	public MLua() {
 		lua = new LuaWrapper();
+		registerFunctions();
 	}
 	
 	public void setBasedir(final String basedir) {
@@ -46,7 +47,6 @@ public class MLua {
 	}
 	
 	public void start(String launcher) throws Throwable {
-		registerFunctions();
 		lua.start(launcher);
 	}
 	
